@@ -1,6 +1,6 @@
 namespace ComputerGraphics
 {
-    public enum ImageExtension
+    public enum ImageType
     {
         Bmp, Ppm
     }
