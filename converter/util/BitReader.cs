@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace ComputerGraphics
+namespace ComputerGraphics.converter.util
 {
     public class BitReader
     {

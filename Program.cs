@@ -2,6 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommandLine;
+using ComputerGraphics.converter;
+using ComputerGraphics.converter.writer;
+using ComputerGraphics.di;
+using ComputerGraphics.renderer;
+using ComputerGraphics.renderer.camera;
+using ComputerGraphics.renderer.config;
+using ComputerGraphics.renderer.kdtree;
+using ComputerGraphics.renderer.rays;
+using ComputerGraphics.renderer.reader;
+using ComputerGraphics.renderer.scene;
+using ComputerGraphics.renderer.@struct;
 
 namespace ComputerGraphics
 {
@@ -16,24 +27,39 @@ namespace ComputerGraphics
         
         static void Main(string[] args)
         {
-            var parser = new Parser(settings =>
-            {
-                settings.AutoHelp = false;
-                settings.AutoVersion = false;
-            });
-            parser.ParseArguments<Options>(args)
-                .WithParsed(Run)
-                .WithNotParsed(ParsingError);
+            // var parser = new Parser(settings =>
+            // {
+            //     settings.AutoHelp = false;
+            //     settings.AutoVersion = false;
+            // });
+            // parser.ParseArguments<Options>(args)
+            //     .WithParsed(Run)
+            //     .WithNotParsed(ParsingError);
+            var container = new Container();
+            container.Register<IImageWriter, ConsoleImageWriter>();
+            container.Register<ICameraProvider, StaticCameraProvider>();
+            container.Register<IRaysProvider, PerspectiveRayProvider>();
+            container.Register<ISceneConfigProvider, StaticSceneConfigProvider>();
+            container.Register<IObjReader, ObjParserObjReader>();
+            //container.Register<IObjReader, DummyObjReader>();
+
+            container.Register<Scene, Scene>();
+
+            var scene = container.Get<Scene>();
+            scene.LoadObj("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/cow.obj");
+            scene.WriteScene(150, 150, String.Empty);
+            Console.Write('\n');
+            var tree = new KDTree<Triangle>(container.Get<IObjReader>().Read("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/diamond.obj"));
         }
 
         static void Run(Options options)
         {
             try
             {
-                var converter = new ImageConverter(options.Source, options.Target);
+                var converter = ImageConverterFactory.Get(options.Source, options.Target);
                 var targetPath = options.TargetPath ??
                     options.Source.Substring(0, options.Source.LastIndexOf('.')) + '.' + options.Target;
-                converter.Convert(targetPath);
+                converter.Convert(options.Source, targetPath);
             }
             catch (Exception e)
             {

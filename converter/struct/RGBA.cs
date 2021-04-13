@@ -1,4 +1,4 @@
-namespace ComputerGraphics
+namespace ComputerGraphics.converter.@struct
 {
     public struct RGBA
     {

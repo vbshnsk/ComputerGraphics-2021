@@ -1,4 +1,4 @@
-namespace ComputerGraphics
+namespace ComputerGraphics.converter.@enum
 {
     public enum ImageType
     {
