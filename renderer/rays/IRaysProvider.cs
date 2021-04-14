@@ -4,6 +4,6 @@ namespace ComputerGraphics.renderer.rays
 {
     public interface IRaysProvider
     {
-        public Vector3[,] Get(int width, int height, float fov);
+        public Vector3 Get(int x, int y);
     }
 }

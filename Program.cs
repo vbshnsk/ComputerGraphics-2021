@@ -36,7 +36,7 @@ namespace ComputerGraphics
             //     .WithParsed(Run)
             //     .WithNotParsed(ParsingError);
             var container = new Container();
-            container.Register<IImageWriter, ConsoleImageWriter>();
+            container.Register<IImageWriter, BmpImageWriter>();
             container.Register<ICameraProvider, StaticCameraProvider>();
             container.Register<IRaysProvider, PerspectiveRayProvider>();
             container.Register<ISceneConfigProvider, StaticSceneConfigProvider>();
@@ -47,7 +47,7 @@ namespace ComputerGraphics
 
             var scene = container.Get<Scene>();
             scene.LoadObj("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/cow.obj");
-            scene.WriteScene(150, 150, String.Empty);
+            scene.WriteScene("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/cow.bmp");
             Console.Write('\n');
             var tree = new KDTree<Triangle>(container.Get<IObjReader>().Read("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/diamond.obj"));
         }

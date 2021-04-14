@@ -36,33 +36,35 @@ namespace ComputerGraphics.renderer.scene
         }
 
         // TODO: refactor from bool to some struct
-        public bool[,] Draw(int width, int height)
+        public bool[,] Draw()
         {
-            var matrix = new bool[width, height];
             var camera = _cameraProvider.Get();
             var config = _configProvider.Get();
-            var rays = _raysProvider.Get(width, height, config.Fov);
-            
-            for (var i = 0; i < height; i++)
+            var matrix = new bool[config.Width, config.Height];
+
+            for (int x = 0; x < config.Width; x++)
             {
-                for (var j = 0; j < width; j++)
+                for (int y = 0; y < config.Height; y++)
                 {
-                    var ray = rays[i, j];
+                    var ray = _raysProvider.Get(x, y);
                     foreach (var triangle in _triangles)
                     {
-                        //Console.WriteLine(triangle.Item1.X + " " + triangle.Item1.Y + " " + triangle.Item1.Z);
-                        matrix[i, j] = RayIntersection.WithTriangle(camera.Position, ray, triangle);
+                        if (RayIntersection.WithTriangle(camera.Position, ray, triangle))
+                        {
+                            matrix[y, x] = true;
+                        }   
                     }
                 }
             }
-
+            
             return matrix;
         }
         
         // TODO: refactor    
-        public void WriteScene(int width, int height, string writeTo)
+        public void WriteScene(string writeTo)
         {
-            var matrix = Draw(width, height);
+            var matrix = Draw();
+            var config = _configProvider.Get();
             var pixels = new List<RGBA>();
             foreach (var b in matrix)
             {
@@ -70,7 +72,7 @@ namespace ComputerGraphics.renderer.scene
                     new RGBA {Alpha = 255, Blue = 0, Green = 0, Red = 0} 
                     : new RGBA {Alpha = 255, Blue = 255, Green = 255, Red = 255});
             }
-            _imageWriter.Write(writeTo, pixels, width, height);
+            _imageWriter.Write(writeTo, pixels, config.Width, config.Height);
         }
     }
 }
