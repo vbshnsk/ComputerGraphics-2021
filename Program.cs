@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using CommandLine;
 using ComputerGraphics.converter;
 using ComputerGraphics.converter.writer;
 using ComputerGraphics.di;
-using ComputerGraphics.renderer;
 using ComputerGraphics.renderer.camera;
 using ComputerGraphics.renderer.config;
-using ComputerGraphics.renderer.kdtree;
+using ComputerGraphics.renderer.container;
+using ComputerGraphics.renderer.lightning;
 using ComputerGraphics.renderer.rays;
 using ComputerGraphics.renderer.reader;
 using ComputerGraphics.renderer.scene;
-using ComputerGraphics.renderer.@struct;
 
 namespace ComputerGraphics
 {
@@ -27,29 +26,23 @@ namespace ComputerGraphics
         
         static void Main(string[] args)
         {
-            // var parser = new Parser(settings =>
-            // {
-            //     settings.AutoHelp = false;
-            //     settings.AutoVersion = false;
-            // });
-            // parser.ParseArguments<Options>(args)
-            //     .WithParsed(Run)
-            //     .WithNotParsed(ParsingError);
             var container = new Container();
             container.Register<IImageWriter, BmpImageWriter>();
             container.Register<ICameraProvider, StaticCameraProvider>();
-            container.Register<IRaysProvider, PerspectiveRayProvider>();
+            container.Register<IRayProvider, PerspectiveRayProvider>();
             container.Register<ISceneConfigProvider, StaticSceneConfigProvider>();
             container.Register<IObjReader, ObjParserObjReader>();
-            //container.Register<IObjReader, DummyObjReader>();
+            container.Register<ILightningSourceProvider, StaticPointLightningSourceProvider>();
+            container.Register<IObjectContainer, KdTreeObjectContainer>();
+            container.Register<IScene, Scene>();
 
-            container.Register<Scene, Scene>();
-
-            var scene = container.Get<Scene>();
-            scene.LoadObj("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/cow.obj");
-            scene.WriteScene("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/cow.bmp");
+            var scene = container.Get<IScene>();
+            var s = Stopwatch.StartNew();
+            scene.WriteScene("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/dragon3.obj",
+                "/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/dragon3.bmp");
+            s.Stop();
+            Console.WriteLine(s.Elapsed.TotalSeconds);
             Console.Write('\n');
-            var tree = new KDTree<Triangle>(container.Get<IObjReader>().Read("/Users/vbshnsk/Desktop/school/comp-graphics/ComputerGraphics/diamond.obj"));
         }
 
         static void Run(Options options)

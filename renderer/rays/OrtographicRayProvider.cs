@@ -5,7 +5,7 @@ using ComputerGraphics.renderer.@struct;
 
 namespace ComputerGraphics.renderer.rays
 {
-    public class OrtographicRayProvider : IRaysProvider
+    public class OrtographicRayProvider : IRayProvider
     {
         private ICameraProvider _cameraProvider;
         private ISceneConfigProvider _config;
@@ -23,9 +23,9 @@ namespace ComputerGraphics.renderer.rays
             var xNorm = (x - config.Width / 2) / (float) config.Width * 2;
             var yNorm = -(y - config.Height / 2) / (float) config.Height * 2;
 
-            var vec = new Vector3(xNorm, yNorm, 0);
-            vec += camera.Position;
-            vec = camera.Direction - vec;
+            var vec = new Vector3(xNorm, 0, yNorm);
+            vec -= camera.Position;
+            vec += camera.Direction;
                     
             
             return vec.Norm();

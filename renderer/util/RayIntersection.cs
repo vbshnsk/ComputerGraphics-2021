@@ -33,8 +33,44 @@ namespace ComputerGraphics.renderer.util
             }
 
             var t = f * edge2.DotProduct(q);
-            return true;
+            return t > 1e-8;
 
+        }
+
+        public static bool WithBox(Vector3 min, Vector3 max, Vector3 origin, Vector3 direction)
+        {
+            float _tmin = (min.X - origin.X) / direction.X; 
+            float _tmax = (max.X - origin.X) / direction.X;
+
+            float tmin = Math.Min(_tmin, _tmax);
+            float tmax = Math.Max(_tmin, _tmax);
+ 
+            float _tymin = (min.Y - origin.Y) / direction.Y; 
+            float _tymax = (max.Y - origin.Y) / direction.Y;
+
+            float tymin = Math.Min(_tymin, _tymax);
+            float tymax = Math.Max(_tymin, _tymax);
+
+            if ((tmin > tymax) || (tymin > tmax)) 
+                return false; 
+ 
+            if (tymin > tmin) 
+                tmin = tymin; 
+ 
+            if (tymax < tmax) 
+                tmax = tymax; 
+            
+            float _tzmin = (min.Z - origin.Z) / direction.Z; 
+            float _tzmax = (max.Z - origin.Z) / direction.Z;
+            
+            float tzmin = Math.Min(_tzmin, _tzmax);
+            float tzmax = Math.Max(_tzmin, _tzmax);
+            
+ 
+            if ((tmin > tzmax) || (tzmin > tmax)) 
+                return false;
+
+            return true; 
         }
     }
 }

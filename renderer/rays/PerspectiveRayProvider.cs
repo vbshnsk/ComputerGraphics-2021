@@ -5,7 +5,7 @@ using ComputerGraphics.renderer.@struct;
 
 namespace ComputerGraphics.renderer.rays
 {
-    public class PerspectiveRayProvider : IRaysProvider
+    public class PerspectiveRayProvider : IRayProvider
     {
         private ICameraProvider _cameraProvider;
         private ISceneConfigProvider _config;
@@ -21,11 +21,11 @@ namespace ComputerGraphics.renderer.rays
             var camera = _cameraProvider.Get();
             var config = _config.Get();
             
-            var scale = MathF.Tan(config.Fov * MathF.PI / 2 / 180);
+            var angle = MathF.Tan(config.Fov * MathF.PI / 180);
             var aspectRatio = (float) config.Width / config.Height;
             
-            var projectedX = (2 * (x + 0.5f) / config.Width - 1f) * scale * aspectRatio;
-            var projectedY = (1 - 2 * (y + 0.5f) / config.Height) * scale;
+            var projectedX = (2 * (x + 0.5f) / config.Width - 1f) * angle * aspectRatio;
+            var projectedY = (2 * ((y + 0.5f) / config.Height) - 1) * angle;
             
             var direction = camera.Direction + new Vector3(projectedX, 0, projectedY) - camera.Position;
 

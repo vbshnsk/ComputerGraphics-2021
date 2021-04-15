@@ -1,76 +1,93 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ComputerGraphics.converter.@struct;
 using ComputerGraphics.converter.writer;
 using ComputerGraphics.renderer.camera;
 using ComputerGraphics.renderer.config;
+using ComputerGraphics.renderer.container;
+using ComputerGraphics.renderer.lightning;
 using ComputerGraphics.renderer.rays;
-using ComputerGraphics.renderer.reader;
 using ComputerGraphics.renderer.@struct;
-using ComputerGraphics.renderer.util;
 
 namespace ComputerGraphics.renderer.scene
 {
-    public class Scene
+    public class Scene : IScene
     {
         private ICameraProvider _cameraProvider;
-        private IRaysProvider _raysProvider;
+        private IRayProvider _rayProvider;
         private ISceneConfigProvider _configProvider;
-        private IObjReader _objReader;
         private IImageWriter _imageWriter;
-        private Triangle[] _triangles;
+        private IObjectContainer _objContainer;
+        private ILightningSourceProvider _lightningProvider;
 
-        public Scene(ICameraProvider cameraProvider, IRaysProvider raysProvider, ISceneConfigProvider configProvider,
-            IObjReader reader, IImageWriter writer)
+        public Scene(ICameraProvider cameraProvider, IRayProvider rayProvider, ISceneConfigProvider configProvider,
+            IObjectContainer container, IImageWriter writer, ILightningSourceProvider lightningProvider)
         {
             _cameraProvider = cameraProvider;
             _configProvider = configProvider;
-            _raysProvider = raysProvider;
-            _objReader = reader;
+            _rayProvider = rayProvider;
+            _objContainer = container;
             _imageWriter = writer;
+            _lightningProvider = lightningProvider;
         }
 
-        public void LoadObj(string pathToFile)
+        private void LoadObj(string pathToFile)
         {
-            _triangles = _objReader.Read(pathToFile);
+            _objContainer.LoadObj(pathToFile);
         }
-
-        // TODO: refactor from bool to some struct
-        public bool[,] Draw()
+        
+        private RGBA[,] Draw()
         {
             var camera = _cameraProvider.Get();
             var config = _configProvider.Get();
-            var matrix = new bool[config.Width, config.Height];
-
-            for (int x = 0; x < config.Width; x++)
+            var matrix = new RGBA[config.Height, config.Width];
+            var lightning = _lightningProvider.Get();
+            Console.WriteLine("Started render");
+            Parallel.For(0, config.Width, x =>
             {
-                for (int y = 0; y < config.Height; y++)
+                Parallel.For(0, config.Height, y =>
                 {
-                    var ray = _raysProvider.Get(x, y);
-                    foreach (var triangle in _triangles)
+                    var ray = _rayProvider.Get(x, y);
+                    var lastHitDistance = float.MaxValue;
+                    var allHit = _objContainer.GetObjectsByRay(ray);
+                    
+                    Parallel.ForEach(allHit, obj =>
                     {
-                        if (RayIntersection.WithTriangle(camera.Position, ray, triangle))
+                        if (obj.HitBy(ray, camera.Position))
                         {
-                            matrix[y, x] = true;
-                        }   
-                    }
-                }
-            }
-            
+                            var hitDistance = (camera.Position - obj.MidPoint).Length;
+                            
+                            if (lastHitDistance > hitDistance)
+                            {
+                                lastHitDistance = hitDistance;
+                                matrix[y, x] = lightning.Illuminate(obj);
+                            }
+                        }
+                    });
+                });
+            });
+            Console.WriteLine("Finished render");
+
             return matrix;
         }
         
-        // TODO: refactor    
-        public void WriteScene(string writeTo)
+        public void WriteScene(string source, string writeTo)
         {
+            LoadObj(source);
             var matrix = Draw();
             var config = _configProvider.Get();
             var pixels = new List<RGBA>();
-            foreach (var b in matrix)
+            for (var i = 0; i < matrix.GetLength(0); i++)
             {
-                pixels.Add(b ? 
-                    new RGBA {Alpha = 255, Blue = 0, Green = 0, Red = 0} 
-                    : new RGBA {Alpha = 255, Blue = 255, Green = 255, Red = 255});
+                var tmp = new List<RGBA>();
+                for (var j = 0; j < matrix.GetLength(1); j++)
+                {
+                    tmp.Add(matrix[i, j]);
+                }
+
+                tmp.Reverse();
+                pixels.InsertRange(0, tmp);
             }
             _imageWriter.Write(writeTo, pixels, config.Width, config.Height);
         }

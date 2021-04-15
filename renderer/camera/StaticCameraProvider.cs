@@ -6,7 +6,7 @@ namespace ComputerGraphics.renderer.camera
     {
         public Camera Get()
         {
-            var camera = new Camera {Position = new Vector3(0, 2f, -0.8f), Direction = new Vector3(0, -1, 0)};
+            var camera = new Camera {Position = new Vector3(0, 10, 0), Direction = new Vector3(0, -1, 0)};
             return camera;
         }
     }

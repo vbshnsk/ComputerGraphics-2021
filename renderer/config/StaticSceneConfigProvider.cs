@@ -8,9 +8,9 @@ namespace ComputerGraphics.renderer.config
         {
             return new SceneConfig
             {
-                Fov = 90,
-                Width = 110,
-                Height = 110
+                Fov = 60,
+                Width = 1920,
+                Height = 1080
             };
         }
     }
